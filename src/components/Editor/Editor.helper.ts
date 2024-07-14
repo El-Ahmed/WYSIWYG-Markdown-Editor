@@ -15,14 +15,21 @@ export const handleTextContentHeading = (node: ChildNode) => {
   const containerSpan = document.createElement(headingTag);
   node.replaceWith(containerSpan);
 
-  const textNode = document.createTextNode(node.textContent);
+  const spanNode = document.createElement("span");
+  spanNode.textContent = `${Array(hashesCount).fill("#").join("")} `;
+  spanNode.classList.add("hashes");
+  containerSpan.appendChild(spanNode);
+
+  const textNode = document.createTextNode(
+    node.textContent.slice(hashesCount + 1)
+  );
   containerSpan.appendChild(textNode);
 
   // if selected reselect
   if (!selected) return;
 
   const range = document.createRange();
-  if (startOffset) range.setStart(textNode, startOffset);
+  if (startOffset) range.setStart(textNode, startOffset - hashesCount - 1);
   else range.setStartAfter(textNode);
   range.collapse(true);
 
