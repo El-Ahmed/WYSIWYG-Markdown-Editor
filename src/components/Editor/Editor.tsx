@@ -65,18 +65,27 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
     const containerElement = editorRef.current as HTMLElement;
     containerElement.childNodes.forEach((element) => {
       const firstChild = element.firstChild as Element;
-      if (firstChild?.classList?.contains?.("hashes")) {
+      if (
+        firstChild?.classList?.contains?.("hashes") &&
+        !firstChild?.classList?.contains?.("hidden-text")
+      ) {
         firstChild.classList.add("hidden-text");
       }
     });
 
     const selection = window.getSelection();
-    let focusElement = selection?.focusNode;
 
-    while (focusElement && focusElement.parentElement !== containerElement) {
-      focusElement = focusElement?.parentElement;
-    }
-    (focusElement?.firstChild as Element)?.classList?.remove?.("hidden-text");
+    containerElement.childNodes.forEach((element) => {
+      const firstChild = element.firstChild as Element;
+      if (
+        firstChild?.classList?.contains?.("hashes") &&
+        firstChild?.classList?.contains?.("hidden-text")
+      ) {
+        if (selection?.containsNode(element, true)) {
+          firstChild.classList.remove("hidden-text");
+        }
+      }
+    });
   };
 
   useEffect(() => {
