@@ -7,6 +7,10 @@ function App() {
   return (
     <>
       <Editor initialContent={content} onContentChange={setContent}></Editor>
+      {/* <div
+        contentEditable
+        style={{ height: 500, width: 500, backgroundColor: "#1a1a1a" }}
+      ></div> */}
     </>
   );
 }

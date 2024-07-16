@@ -1,80 +1,81 @@
 import { countHeadingHashes } from "./Editor.utils";
 
-export const handleTextContentHeading = (node: ChildNode) => {
-  if (node.nodeType !== Node.TEXT_NODE) return;
-  if (!node?.textContent) return;
-
-  const hashesCount = countHeadingHashes(node.textContent);
-  if (!hashesCount) return;
-
+const clearElement = (element: Element) => {
   const selection = window.getSelection();
-  const selected = selection?.containsNode(node, true);
-  const startOffset = selection?.getRangeAt?.(0)?.endOffset;
+  const range = selection?.getRangeAt(0);
+  const startOffset = range?.startOffset;
 
-  const headingTag = `h${hashesCount}`;
-  const containerSpan = document.createElement(headingTag);
-  node.replaceWith(containerSpan);
-
-  const spanNode = document.createElement("span");
-  spanNode.textContent = `${Array(hashesCount).fill("#").join("")} `;
-  spanNode.classList.add("hashes");
-  containerSpan.appendChild(spanNode);
-
-  const textNode = document.createTextNode(
-    node.textContent.slice(hashesCount + 1)
-  );
-  containerSpan.appendChild(textNode);
-
-  // if selected reselect
-  if (!selected) return;
-
-  const range = document.createRange();
-  if (startOffset) range.setStart(textNode, startOffset - hashesCount - 1);
-  else range.setStartAfter(textNode);
-  range.collapse(true);
-
-  selection?.removeAllRanges();
-  selection?.addRange(range);
+  if (element.childElementCount > 0)
+    element.textContent = element.textContent?.toString() ?? null;
+  element.className = "";
+  if (
+    selection?.containsNode(element, true) &&
+    range &&
+    startOffset &&
+    element.firstChild
+  ) {
+    range?.setStart(element.firstChild, startOffset);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
 };
 
-export const handleUnwantedElement = (node: ChildNode): ChildNode => {
-  if (node.nodeType !== Node.ELEMENT_NODE) return node;
+export const handleHeadingNode = (node: ChildNode) => {
+  if (node.nodeType !== Node.ELEMENT_NODE) return;
   const element = node as Element;
   if (
-    element.tagName === "BR" ||
-    (element.firstChild as Element)?.tagName === "BR"
-  )
-    return node;
-
-  const tagName = element.tagName.toLowerCase();
-  if (tagName.match(/^h[1-6]$/)) {
-    const headingNumber = parseInt(tagName.substring(1));
-    if (
-      node?.textContent &&
-      countHeadingHashes(node.textContent) === headingNumber
-    )
-      return node;
+    element.childNodes.length === 1 &&
+    element.firstElementChild?.tagName === "BR"
+  ) {
+    element.className = "";
+    return;
   }
-
-  // whenever text is not text node or br or contains br make it text node
-  const textNode = document.createTextNode(node.textContent ?? "");
+  if (!element.textContent) {
+    clearElement(element);
+    return;
+  }
+  const headingsCount = countHeadingHashes(element.textContent);
+  if (!headingsCount) {
+    if (
+      ["h1", "h2", "h3", "h4", "h5", "h6"].some((className) =>
+        element.classList?.contains(className)
+      )
+    )
+      clearElement(element);
+    return;
+  }
+  if (
+    element.classList?.contains(`h${headingsCount}`) &&
+    element.textContent?.slice(0, headingsCount + 1) ===
+      `${Array(headingsCount).fill("#").join("")} `
+  )
+    return;
 
   const selection = window.getSelection();
-  const selected = selection?.containsNode(node, true);
-  const startOffset = selection?.getRangeAt?.(0)?.startOffset;
+  const range = selection?.getRangeAt(0);
+  const startOffset = range?.startOffset;
 
-  node.replaceWith(textNode);
+  element.textContent = element.textContent.slice(headingsCount + 1);
 
-  // if selected reselect
-  if (!selected) return textNode;
+  const spanNode = document.createElement("span");
+  spanNode.className = "hashes";
+  spanNode.textContent = `${Array(headingsCount).fill("#").join("")} `;
+  element.insertAdjacentElement("afterbegin", spanNode);
+  element.className = `h${headingsCount}`;
 
-  const range = document.createRange();
-  if (startOffset) range.setStart(textNode, startOffset);
-  else range.setStartAfter(textNode);
-  range.collapse(true);
-
-  selection?.removeAllRanges();
-  selection?.addRange(range);
-
-  return textNode;
+  if (
+    selection?.containsNode(element, true) &&
+    range &&
+    startOffset &&
+    element.lastChild
+  ) {
+    const offset = startOffset - headingsCount - 1;
+    if (offset > 0) {
+      range?.setStart(element.lastChild, startOffset - headingsCount - 1);
+    } else if (element.firstChild?.firstChild) {
+      range?.setStart(element.firstChild.firstChild, startOffset);
+    }
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
 };

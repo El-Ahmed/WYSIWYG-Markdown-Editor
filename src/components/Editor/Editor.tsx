@@ -1,101 +1,41 @@
-import {
-  KeyboardEvent,
-  FC,
-  MutableRefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FC, MutableRefObject, useEffect, useRef, useState } from "react";
 
 import styles from "./Editor.module.scss";
 
-import {
-  handleTextContentHeading,
-  handleUnwantedElement,
-} from "./Editor.helper";
 import { EditorProps } from "./Editor.types";
+import { handleHeadingNode } from "./Editor.helper";
 
 const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
   const editorRef: MutableRefObject<null | HTMLDivElement> = useRef(null);
   const [content, setContent] = useState("");
 
-  const handleInput = useCallback(() => {
-    if (!editorRef.current?.innerText) return;
-
-    onContentChange(editorRef.current.innerText);
-    setContent(editorRef.current.innerText);
-    const childNodes = editorRef.current?.childNodes;
-    childNodes?.forEach((node) => {
-      const newNode = handleUnwantedElement(node);
-      handleTextContentHeading(newNode);
+  const handleInput = () => {
+    const container = editorRef.current;
+    if (!container) return;
+    if (!container.innerText?.length) {
+      resetEditor();
+      return;
+    }
+    container.childNodes.forEach((childNode) => {
+      handleHeadingNode(childNode);
     });
-  }, [onContentChange]);
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-
-    const selection = window.getSelection();
-
-    const containerElement = editorRef.current as HTMLElement;
-    if (!selection?.containsNode(containerElement, true)) return;
-
-    let focusElement = selection.focusNode as HTMLElement | null;
-    const currentRange = selection?.getRangeAt(0);
-
-    while (focusElement && focusElement.parentElement !== containerElement) {
-      focusElement = focusElement?.parentElement;
-    }
-    const brElement = document.createElement("br");
-    if (focusElement) {
-      focusElement?.after(brElement);
-    } else {
-      currentRange.insertNode(brElement);
-    }
-    const range = document.createRange();
-    range.setStartAfter(brElement);
-    range.collapse(true);
-
-    selection?.removeAllRanges();
-    selection?.addRange(range);
+    setContent(
+      Array.from(container.children)
+        .map((node) => node.textContent)
+        .join("\n")
+    );
   };
 
-  const handleSelect = () => {
-    const containerElement = editorRef.current as HTMLElement;
-    containerElement.childNodes.forEach((element) => {
-      const firstChild = element.firstChild as Element;
-      if (
-        firstChild?.classList?.contains?.("hashes") &&
-        !firstChild?.classList?.contains?.("hidden-text")
-      ) {
-        firstChild.classList.add("hidden-text");
-      }
-    });
-
-    const selection = window.getSelection();
-
-    containerElement.childNodes.forEach((element) => {
-      const firstChild = element.firstChild as Element;
-      if (
-        firstChild?.classList?.contains?.("hashes") &&
-        firstChild?.classList?.contains?.("hidden-text")
-      ) {
-        if (selection?.containsNode(element, true)) {
-          firstChild.classList.remove("hidden-text");
-        }
-      }
-    });
-  };
-
-  useEffect(() => {
+  const resetEditor = () => {
     if (!editorRef.current) return;
-    if (content === initialContent) return;
-    editorRef.current.innerText = initialContent.endsWith("\n")
-      ? initialContent
-      : `${initialContent}\n`;
-    handleInput();
-  }, [content, editorRef, handleInput, initialContent]);
+    editorRef.current.innerText = "";
+    const div = document.createElement("div");
+    div.appendChild(document.createElement("br"));
+    editorRef.current.appendChild(div);
+  };
+  useEffect(() => {
+    resetEditor();
+  }, [editorRef]);
 
   return (
     <>
@@ -103,9 +43,7 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
         ref={editorRef}
         contentEditable
         className={styles.editor}
-        onKeyDown={handleKeyDown}
         onInput={handleInput}
-        onSelect={handleSelect}
       ></div>
       <div style={{ whiteSpace: "pre-line" }}>{content}</div>
     </>
