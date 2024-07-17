@@ -37,6 +37,21 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
     resetEditor();
   }, [editorRef]);
 
+  const applyContent = () => {
+    if (!editorRef.current) return;
+    editorRef.current.innerText = "";
+    content.split(/\r?\n/).forEach((text) => {
+      const div = document.createElement("div");
+      if (text.length) {
+        div.textContent = text;
+      } else {
+        div.appendChild(document.createElement("br"));
+      }
+      editorRef.current?.appendChild(div);
+    });
+    handleInput();
+  };
+
   return (
     <>
       <div
@@ -46,6 +61,7 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
         onInput={handleInput}
       ></div>
       <div style={{ whiteSpace: "pre-line" }}>{content}</div>
+      <button onClick={applyContent}>set Content</button>
     </>
   );
 };
