@@ -36,20 +36,16 @@ export const handleHeadingNode = (node: ChildNode) => {
   }
   const headingsCount = countHeadingHashes(element.textContent);
   if (!headingsCount) {
-    if (
-      ["h1", "h2", "h3", "h4", "h5", "h6"].some((className) =>
-        element.classList?.contains(className)
-      )
-    )
-      clearElement(element);
+    clearElement(element);
     return;
   }
   if (
-    element.classList?.contains(`h${headingsCount}`) &&
+    element.className === `h${headingsCount}` &&
     element.textContent?.slice(0, headingsCount + 1) ===
       `${Array(headingsCount).fill("#").join("")} `
-  )
+  ) {
     return;
+  }
 
   const selection = window.getSelection();
   const range = selection?.getRangeAt(0);
@@ -77,5 +73,22 @@ export const handleHeadingNode = (node: ChildNode) => {
     }
     selection.removeAllRanges();
     selection.addRange(range);
+  }
+};
+
+export const handleBreakNode = (node: ChildNode) => {
+  if (node.nodeType !== Node.ELEMENT_NODE) return;
+  const element = node as Element;
+  console.log(
+    element.textContent,
+    element.childNodes.length,
+    element.firstElementChild
+  );
+  if (
+    element.childNodes.length === 1 &&
+    element.firstElementChild?.tagName === "BR"
+  ) {
+    element.className = "break";
+    return;
   }
 };

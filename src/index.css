@@ -130,3 +130,7 @@ button:focus-visible {
   margin-right: 0;
   font-weight: bold;
 }
+
+.break {
+  height: 2em;
+}

@@ -3,7 +3,7 @@ import { FC, MutableRefObject, useEffect, useRef, useState } from "react";
 import styles from "./Editor.module.scss";
 
 import { EditorProps } from "./Editor.types";
-import { handleHeadingNode } from "./Editor.helper";
+import { handleBreakNode, handleHeadingNode } from "./Editor.helper";
 
 const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
   const editorRef: MutableRefObject<null | HTMLDivElement> = useRef(null);
@@ -18,6 +18,9 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
     }
     container.childNodes.forEach((childNode) => {
       handleHeadingNode(childNode);
+    });
+    container.childNodes.forEach((childNode) => {
+      handleBreakNode(childNode);
     });
     setContent(
       Array.from(container.children)
