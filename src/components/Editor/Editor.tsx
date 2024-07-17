@@ -3,7 +3,11 @@ import { FC, MutableRefObject, useEffect, useRef, useState } from "react";
 import styles from "./Editor.module.scss";
 
 import { EditorProps } from "./Editor.types";
-import { handleBreakNode, handleHeadingNode } from "./Editor.helper";
+import {
+  handleBreakNode,
+  handleHeadingNode,
+  handleHiddenHashes,
+} from "./Editor.helper";
 
 const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
   const editorRef: MutableRefObject<null | HTMLDivElement> = useRef(null);
@@ -27,6 +31,24 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
         .map((node) => node.textContent)
         .join("\n")
     );
+  };
+
+  const handleSelect = () => {
+    const container = editorRef.current;
+    if (!container) return;
+
+    container.childNodes.forEach((childNode) => {
+      handleHiddenHashes(childNode);
+    });
+  };
+
+  const handleBlur = () => {
+    const container = editorRef.current;
+    if (!container) return;
+
+    container.childNodes.forEach((childNode) => {
+      handleHiddenHashes(childNode, true);
+    });
   };
 
   const resetEditor = () => {
@@ -53,6 +75,7 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
       editorRef.current?.appendChild(div);
     });
     handleInput();
+    handleSelect();
   };
 
   return (
@@ -62,6 +85,8 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
         contentEditable
         className={styles.editor}
         onInput={handleInput}
+        onSelect={handleSelect}
+        onBlur={handleBlur}
       ></div>
       <div style={{ whiteSpace: "pre-line" }}>{content}</div>
       <button onClick={applyContent}>set Content</button>

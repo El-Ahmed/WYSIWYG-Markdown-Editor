@@ -2,7 +2,11 @@ import { countHeadingHashes } from "./Editor.utils";
 
 const clearElement = (element: Element) => {
   const selection = window.getSelection();
-  const range = selection?.getRangeAt(0);
+
+  const range =
+    selection && selection?.rangeCount > 0
+      ? selection?.getRangeAt?.(0)
+      : undefined;
   const startOffset = range?.startOffset;
 
   if (element.childElementCount > 0)
@@ -48,7 +52,10 @@ export const handleHeadingNode = (node: ChildNode) => {
   }
 
   const selection = window.getSelection();
-  const range = selection?.getRangeAt(0);
+  const range =
+    selection && selection?.rangeCount > 0
+      ? selection?.getRangeAt?.(0)
+      : undefined;
   const startOffset = range?.startOffset;
 
   element.textContent = element.textContent.slice(headingsCount + 1);
@@ -79,16 +86,26 @@ export const handleHeadingNode = (node: ChildNode) => {
 export const handleBreakNode = (node: ChildNode) => {
   if (node.nodeType !== Node.ELEMENT_NODE) return;
   const element = node as Element;
-  console.log(
-    element.textContent,
-    element.childNodes.length,
-    element.firstElementChild
-  );
   if (
     element.childNodes.length === 1 &&
     element.firstElementChild?.tagName === "BR"
   ) {
     element.className = "break";
     return;
+  }
+};
+
+export const handleHiddenHashes = (
+  node: ChildNode,
+  hideEverything?: boolean
+) => {
+  if (node.nodeType !== Node.ELEMENT_NODE) return;
+  const element = node as Element;
+  if (!element.firstElementChild?.classList?.contains?.("hashes")) return;
+  const selection = window.getSelection();
+  if (selection?.containsNode(element, true) && !hideEverything) {
+    element.firstElementChild.classList.remove("hidden-text");
+  } else {
+    element.firstElementChild.classList.add("hidden-text");
   }
 };
