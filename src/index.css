@@ -134,3 +134,7 @@ button:focus-visible {
 .break {
   height: 2em;
 }
+
+.bold {
+  font-weight: bold;
+}

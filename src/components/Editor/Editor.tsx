@@ -4,6 +4,7 @@ import styles from "./Editor.module.scss";
 
 import { EditorProps } from "./Editor.types";
 import {
+  handleBold,
   handleBreakNode,
   handleHeadingNode,
   handleHiddenHashes,
@@ -25,6 +26,9 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
     });
     container.childNodes.forEach((childNode) => {
       handleBreakNode(childNode);
+    });
+    container.childNodes.forEach((childNode) => {
+      handleBold(childNode);
     });
     setContent(
       Array.from(container.children)
