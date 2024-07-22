@@ -123,13 +123,11 @@ export const handleHiddenHashes = (
   }
 };
 
-// combine all text nodes after first hashes
-// then tokenize it with *** *** and put them in span
 export const handleBold = (node: ChildNode) => {
   const element = node as Element;
   if (element.className.length) return;
   if (!element.textContent?.length) return;
-  if (!element.textContent.includes("**")) return;
+  if (!element.textContent.includes("*")) return;
 
   const selection = window.getSelection();
 
@@ -143,29 +141,62 @@ export const handleBold = (node: ChildNode) => {
   const textContent = element.textContent.toString();
 
   const textList = textContent.split("**");
-  if (textList.length < 3) return;
+
+  // if (textList.length % 2 === 0) {
+  //   const lastTwo = textList.slice(-2);
+
+  //   const joinedString = lastTwo.join("**");
+
+  //   textList.splice(-2, 2, joinedString);
+  // }
+
+  const styledTexts = textList.flatMap((text, index) => {
+    if (index % 2) {
+      if (index < textList.length - 1)
+        return [
+          { text: "**" },
+          { text, bold: true, italic: false },
+          { text: "**" },
+        ];
+      else return [{ text: "**" }, { text, bold: false, italic: false }];
+    }
+    const italicTextList = text.split("*");
+    // if (italicTextList.length % 2 === 0) {
+    //   const lastTwo = italicTextList.slice(-2);
+
+    //   const joinedString = lastTwo.join("**");
+
+    //   italicTextList.splice(-2, 2, joinedString);
+    // }
+    return italicTextList.flatMap((text, index) => {
+      if (index % 2) {
+        if (index < italicTextList.length - 1)
+          return [
+            { text: "*" },
+            { text, bold: false, italic: true },
+            { text: "*" },
+          ];
+        else return [{ text: "*" }, { text, bold: false, italic: false }];
+      }
+      return { text, bold: false, italic: false };
+    });
+  });
 
   element.textContent = "";
-  if (textList.length % 2 === 0) {
-    const lastTwo = textList.slice(-2);
-
-    const joinedString = lastTwo.join("**");
-
-    textList.splice(-2, 2, joinedString);
-  }
-
-  textList.forEach((text, index) => {
+  styledTexts.forEach((textObject) => {
     const span = document.createElement("span");
-    span.textContent = text;
-    if (index % 2 && index < textList.length - 1) {
+    span.textContent = textObject.text;
+    if (textObject.bold) {
       span.className = "bold";
+      element.appendChild(span);
+      return;
+    }
+    if (textObject.italic) {
+      span.className = "italic";
+      element.appendChild(span);
+      return;
     }
     element.appendChild(span);
-    if (index < textList.length - 1) {
-      const asteriskSpan = document.createElement("span");
-      asteriskSpan.textContent = "**";
-      element.appendChild(asteriskSpan);
-    }
   });
 
   let charCount = 0;
@@ -180,7 +211,6 @@ export const handleBold = (node: ChildNode) => {
         range.setStart(childElement.firstChild, newOffset);
         selection.removeAllRanges();
         selection.addRange(range); //
-        // console.log("bold", range.startContainer, range.startOffset);
       }
       return false;
     }
