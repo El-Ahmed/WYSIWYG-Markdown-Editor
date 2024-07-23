@@ -14,7 +14,7 @@ const clearElement = (element: Element) => {
     if (startOffset !== undefined && startNode) {
       Array.from(element.childNodes).every((childElement) => {
         if (childElement.firstChild?.isSameNode(startNode)) return false;
-        startOffset += childElement.textContent?.length ?? 0;
+        if (startOffset) startOffset += childElement.textContent?.length ?? 0;
         return true;
       });
     }
