@@ -176,7 +176,7 @@ export const handleBold = (node: ChildNode) => {
             text: delimiter,
             bold: false,
             italic: false,
-            toHide: true,
+            toHide: false,
           });
         }
       }
