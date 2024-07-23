@@ -11,7 +11,7 @@ const clearElement = (element: Element) => {
 
   if (element.childElementCount > 0) {
     const startNode = range?.startContainer;
-    if (startOffset && startNode) {
+    if (startOffset !== undefined && startNode) {
       Array.from(element.childNodes).every((childElement) => {
         if (childElement.firstChild?.isSameNode(startNode)) return false;
         startOffset += childElement.textContent?.length ?? 0;
@@ -142,15 +142,8 @@ export const handleBold = (node: ChildNode) => {
 
   const textList = textContent.split("**");
 
-  // if (textList.length % 2 === 0) {
-  //   const lastTwo = textList.slice(-2);
-
-  //   const joinedString = lastTwo.join("**");
-
-  //   textList.splice(-2, 2, joinedString);
-  // }
-
   const styledTexts = textList.flatMap((text, index) => {
+    const addedText = [];
     if (index % 2) {
       if (index < textList.length - 1)
         return [
@@ -158,28 +151,26 @@ export const handleBold = (node: ChildNode) => {
           { text, bold: true, italic: false },
           { text: "**" },
         ];
-      else return [{ text: "**" }, { text, bold: false, italic: false }];
+      else {
+        addedText.push({ text: "**" });
+      }
     }
     const italicTextList = text.split("*");
-    // if (italicTextList.length % 2 === 0) {
-    //   const lastTwo = italicTextList.slice(-2);
-
-    //   const joinedString = lastTwo.join("**");
-
-    //   italicTextList.splice(-2, 2, joinedString);
-    // }
-    return italicTextList.flatMap((text, index) => {
-      if (index % 2) {
-        if (index < italicTextList.length - 1)
-          return [
-            { text: "*" },
-            { text, bold: false, italic: true },
-            { text: "*" },
-          ];
-        else return [{ text: "*" }, { text, bold: false, italic: false }];
-      }
-      return { text, bold: false, italic: false };
-    });
+    return [
+      ...addedText,
+      ...italicTextList.flatMap((text, index) => {
+        if (index % 2) {
+          if (index < italicTextList.length - 1)
+            return [
+              { text: "*" },
+              { text, bold: false, italic: true },
+              { text: "*" },
+            ];
+          else return [{ text: "*" }, { text, bold: false, italic: false }];
+        }
+        return { text, bold: false, italic: false };
+      }),
+    ];
   });
 
   element.textContent = "";
