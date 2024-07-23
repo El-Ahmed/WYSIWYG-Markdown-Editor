@@ -7,12 +7,13 @@ import {
   handleBold,
   handleBreakNode,
   handleHeadingNode,
-  handleHiddenHashes,
+  handleHiddenText,
 } from "./Editor.helper";
 
 const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
   const editorRef: MutableRefObject<null | HTMLDivElement> = useRef(null);
   const [content, setContent] = useState("");
+  const [lines, setLines] = useState<(string | null)[]>([]);
 
   const handleInput = () => {
     const container = editorRef.current;
@@ -21,19 +22,31 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
       resetEditor();
       return;
     }
-    container.childNodes.forEach((childNode) => {
+    const editedChildNodes = Array.from(container.childNodes).filter(
+      (node, index) => {
+        return node.textContent !== lines[index];
+      }
+    );
+    editedChildNodes.forEach((childNode) => {
       handleHeadingNode(childNode);
     });
-    container.childNodes.forEach((childNode) => {
+    editedChildNodes.forEach((childNode) => {
       handleBreakNode(childNode);
     });
-    container.childNodes.forEach((childNode) => {
+    editedChildNodes.forEach((childNode) => {
       handleBold(childNode);
     });
+
     setContent(
       Array.from(container.children)
         .map((node) => node.textContent)
         .join("\n")
+    );
+
+    setLines(
+      Array.from(container.childNodes).map((node) => {
+        return node.textContent;
+      })
     );
   };
 
@@ -42,7 +55,7 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
     if (!container) return;
 
     container.childNodes.forEach((childNode) => {
-      handleHiddenHashes(childNode);
+      handleHiddenText(childNode);
     });
   };
 
@@ -51,7 +64,7 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
     if (!container) return;
 
     container.childNodes.forEach((childNode) => {
-      handleHiddenHashes(childNode, true);
+      handleHiddenText(childNode, true);
     });
   };
 

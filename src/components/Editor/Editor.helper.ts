@@ -72,7 +72,7 @@ export const handleHeadingNode = (node: ChildNode) => {
   element.textContent = element.textContent.slice(headingsCount + 1);
 
   const spanNode = document.createElement("span");
-  spanNode.className = "hashes";
+  spanNode.className = "to-hide";
   spanNode.textContent = `${Array(headingsCount).fill("#").join("")} `;
   element.insertAdjacentElement("afterbegin", spanNode);
   element.className = `h${headingsCount}`;
@@ -108,18 +108,24 @@ export const handleBreakNode = (node: ChildNode) => {
   }
 };
 
-export const handleHiddenHashes = (
-  node: ChildNode,
-  hideEverything?: boolean
-) => {
+export const handleHiddenText = (node: ChildNode, hideEverything?: boolean) => {
   if (node.nodeType !== Node.ELEMENT_NODE) return;
   const element = node as Element;
-  if (!element.firstElementChild?.classList?.contains?.("hashes")) return;
+  if (
+    !Array.from(element.children).some((child) =>
+      child?.classList?.contains?.("to-hide")
+    )
+  )
+    return;
   const selection = window.getSelection();
   if (selection?.containsNode(element, true) && !hideEverything) {
-    element.firstElementChild.classList.remove("hidden-text");
+    Array.from(element.children).forEach((child) =>
+      child.classList.remove("hidden-text")
+    );
   } else {
-    element.firstElementChild.classList.add("hidden-text");
+    Array.from(element.children)
+      .filter((child) => child.classList.contains("to-hide"))
+      .forEach((child) => child.classList.add("hidden-text"));
   }
 };
 
@@ -143,9 +149,9 @@ export const handleBold = (node: ChildNode) => {
   const splitWithAsterisks = (
     asterisksCount: number,
     allText: string
-  ): { text: string; bold: boolean; italic: boolean }[] => {
+  ): { text: string; bold: boolean; italic: boolean; toHide: boolean }[] => {
     if (asterisksCount < 1) {
-      return [{ text: allText, bold: false, italic: false }];
+      return [{ text: allText, bold: false, italic: false, toHide: false }];
     }
     const delimiter = new Array(asterisksCount).fill("*").join("");
 
@@ -156,16 +162,22 @@ export const handleBold = (node: ChildNode) => {
       if (index % 2) {
         if (index < textList.length - 1)
           return [
-            { text: delimiter, bold: false, italic: false },
+            { text: delimiter, bold: false, italic: false, toHide: true },
             {
               text,
               bold: asterisksCount > 1,
               italic: asterisksCount !== 2,
+              toHide: false,
             },
-            { text: delimiter, bold: false, italic: false },
+            { text: delimiter, bold: false, italic: false, toHide: true },
           ];
         else {
-          addedText.push({ text: delimiter, bold: false, italic: false });
+          addedText.push({
+            text: delimiter,
+            bold: false,
+            italic: false,
+            toHide: true,
+          });
         }
       }
       return [...addedText, ...splitWithAsterisks(asterisksCount - 1, text)];
@@ -190,6 +202,11 @@ export const handleBold = (node: ChildNode) => {
     }
     if (textObject.italic) {
       span.className = "italic";
+      element.appendChild(span);
+      return;
+    }
+    if (textObject.toHide) {
+      span.className = "to-hide";
       element.appendChild(span);
       return;
     }
