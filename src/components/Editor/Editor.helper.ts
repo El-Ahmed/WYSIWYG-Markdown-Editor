@@ -140,43 +140,49 @@ export const handleBold = (node: ChildNode) => {
 
   const textContent = element.textContent.toString();
 
-  const textList = textContent.split("**");
-
-  const styledTexts = textList.flatMap((text, index) => {
-    const addedText = [];
-    if (index % 2) {
-      if (index < textList.length - 1)
-        return [
-          { text: "**" },
-          { text, bold: true, italic: false },
-          { text: "**" },
-        ];
-      else {
-        addedText.push({ text: "**" });
-      }
+  const splitWithAsterisks = (
+    asterisksCount: number,
+    allText: string
+  ): { text: string; bold: boolean; italic: boolean }[] => {
+    if (asterisksCount < 1) {
+      return [{ text: allText, bold: false, italic: false }];
     }
-    const italicTextList = text.split("*");
-    return [
-      ...addedText,
-      ...italicTextList.flatMap((text, index) => {
-        if (index % 2) {
-          if (index < italicTextList.length - 1)
-            return [
-              { text: "*" },
-              { text, bold: false, italic: true },
-              { text: "*" },
-            ];
-          else return [{ text: "*" }, { text, bold: false, italic: false }];
+    const delimiter = new Array(asterisksCount).fill("*").join("");
+
+    const textList = allText.split(delimiter);
+
+    return textList.flatMap((text, index) => {
+      const addedText = [];
+      if (index % 2) {
+        if (index < textList.length - 1)
+          return [
+            { text: delimiter, bold: false, italic: false },
+            {
+              text,
+              bold: asterisksCount > 1,
+              italic: asterisksCount !== 2,
+            },
+            { text: delimiter, bold: false, italic: false },
+          ];
+        else {
+          addedText.push({ text: delimiter, bold: false, italic: false });
         }
-        return { text, bold: false, italic: false };
-      }),
-    ];
-  });
+      }
+      return [...addedText, ...splitWithAsterisks(asterisksCount - 1, text)];
+    });
+  };
+
+  const styledTexts = splitWithAsterisks(3, textContent);
 
   element.textContent = "";
   styledTexts.forEach((textObject) => {
     const span = document.createElement("span");
     span.textContent = textObject.text;
+    if (textObject.italic && textObject.bold) {
+      span.className = "italic bold";
+      element.appendChild(span);
+      return;
+    }
     if (textObject.bold) {
       span.className = "bold";
       element.appendChild(span);
