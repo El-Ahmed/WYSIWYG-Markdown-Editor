@@ -3,14 +3,16 @@ import "./App.css";
 import Editor from "./components/Editor/Editor";
 
 function App() {
-  const [content, setContent] = useState("\n");
+  const [content, setContent] = useState("");
   return (
     <>
       <Editor initialContent={content} onContentChange={setContent}></Editor>
-      {/* <div
-        contentEditable
-        style={{ height: 500, width: 500, backgroundColor: "#1a1a1a" }}
-      ></div> */}
+
+      <textarea
+        style={{ whiteSpace: "pre-line" }}
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+      ></textarea>
     </>
   );
 }

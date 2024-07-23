@@ -1,4 +1,11 @@
-import { FC, MutableRefObject, useEffect, useRef, useState } from "react";
+import {
+  FC,
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import styles from "./Editor.module.scss";
 
@@ -13,15 +20,15 @@ import {
 const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
   const editorRef: MutableRefObject<null | HTMLDivElement> = useRef(null);
   const [content, setContent] = useState("");
-  const [lines, setLines] = useState<(string | null)[]>([]);
 
-  const handleInput = () => {
+  const handleInput = useCallback(() => {
     const container = editorRef.current;
     if (!container) return;
     if (!container.innerText?.length) {
       resetEditor();
       return;
     }
+    const lines = content?.split("\n") ?? [];
     const editedChildNodes = Array.from(container.childNodes).filter(
       (node, index) => {
         return node.textContent !== lines[index];
@@ -37,18 +44,12 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
       handleBold(childNode);
     });
 
-    setContent(
-      Array.from(container.children)
-        .map((node) => node.textContent)
-        .join("\n")
-    );
-
-    setLines(
-      Array.from(container.childNodes).map((node) => {
-        return node.textContent;
-      })
-    );
-  };
+    const text = Array.from(container.children)
+      .map((node) => node.textContent)
+      .join("\n");
+    onContentChange(text);
+    setContent(text);
+  }, [content, onContentChange]);
 
   const handleSelect = () => {
     const container = editorRef.current;
@@ -75,14 +76,12 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
     div.appendChild(document.createElement("br"));
     editorRef.current.appendChild(div);
   };
-  useEffect(() => {
-    resetEditor();
-  }, [editorRef]);
 
-  const applyContent = () => {
+  const applyContent = useCallback(() => {
     if (!editorRef.current) return;
+    if (content.length && content === initialContent) return;
     editorRef.current.innerText = "";
-    content.split(/\r?\n/).forEach((text) => {
+    initialContent.split(/\r?\n/).forEach((text) => {
       const div = document.createElement("div");
       if (text.length) {
         div.textContent = text;
@@ -93,7 +92,11 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
     });
     handleInput();
     handleSelect();
-  };
+  }, [content, handleInput, initialContent]);
+
+  useEffect(() => {
+    applyContent();
+  }, [applyContent, initialContent]);
 
   return (
     <>
@@ -105,8 +108,6 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
         onSelect={handleSelect}
         onBlur={handleBlur}
       ></div>
-      <div style={{ whiteSpace: "pre-line" }}>{content}</div>
-      <button onClick={applyContent}>set Content</button>
     </>
   );
 };
