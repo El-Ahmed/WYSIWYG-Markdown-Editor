@@ -28,7 +28,6 @@ body {
   padding: 20px;
   padding-top: 100px;
   min-width: 320px;
-  min-height: 100vh;
 }
 
 h1 {
@@ -46,6 +45,7 @@ button {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+  margin: 0.5rem;
 }
 button:hover {
   border-color: #646cff;
@@ -141,4 +141,10 @@ button:focus-visible {
 
 .italic {
   font-style: italic;
+}
+
+.load {
+  display: flex;
+  justify-content: flex-end;
+  margin-inline: 0.5rem;
 }
