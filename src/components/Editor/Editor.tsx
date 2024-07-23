@@ -21,35 +21,38 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
   const editorRef: MutableRefObject<null | HTMLDivElement> = useRef(null);
   const [content, setContent] = useState("");
 
-  const handleInput = useCallback(() => {
-    const container = editorRef.current;
-    if (!container) return;
-    if (!container.innerText?.length) {
-      resetEditor();
-      return;
-    }
-    const lines = content?.split("\n") ?? [];
-    const editedChildNodes = Array.from(container.childNodes).filter(
-      (node, index) => {
-        return node.textContent !== lines[index];
+  const handleInput = useCallback(
+    (reset?: boolean) => {
+      const container = editorRef.current;
+      if (!container) return;
+      if (!container.innerText?.length) {
+        resetEditor();
+        return;
       }
-    );
-    editedChildNodes.forEach((childNode) => {
-      handleHeadingNode(childNode);
-    });
-    editedChildNodes.forEach((childNode) => {
-      handleBreakNode(childNode);
-    });
-    editedChildNodes.forEach((childNode) => {
-      handleBold(childNode);
-    });
+      const lines = !reset ? content?.split("\n") ?? [] : [];
+      const editedChildNodes = Array.from(container.childNodes).filter(
+        (node, index) => {
+          return node.textContent !== lines[index];
+        }
+      );
+      editedChildNodes.forEach((childNode) => {
+        handleHeadingNode(childNode);
+      });
+      editedChildNodes.forEach((childNode) => {
+        handleBreakNode(childNode);
+      });
+      editedChildNodes.forEach((childNode) => {
+        handleBold(childNode);
+      });
 
-    const text = Array.from(container.children)
-      .map((node) => node.textContent)
-      .join("\n");
-    onContentChange(text);
-    setContent(text);
-  }, [content, onContentChange]);
+      const text = Array.from(container.children)
+        .map((node) => node.textContent)
+        .join("\n");
+      onContentChange(text);
+      setContent(text);
+    },
+    [content, onContentChange]
+  );
 
   const handleSelect = () => {
     const container = editorRef.current;
@@ -90,13 +93,13 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
       }
       editorRef.current?.appendChild(div);
     });
-    handleInput();
+    handleInput(true);
     handleSelect();
   }, [content, handleInput, initialContent]);
 
   useEffect(() => {
     applyContent();
-  }, [applyContent, initialContent]);
+  }, [applyContent]);
 
   return (
     <>
@@ -104,7 +107,7 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
         ref={editorRef}
         contentEditable
         className={styles.editor}
-        onInput={handleInput}
+        onInput={() => handleInput()}
         onSelect={handleSelect}
         onBlur={handleBlur}
       ></div>
