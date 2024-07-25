@@ -7,6 +7,7 @@ Check out the live demo [here](https://el-ahmed.github.io/WYSIWYG-Markdown-Edito
 - **Bold Italic:** Wrap your text in *** to make it bold and italic.
 - **Bold:** Wrap your text in ** to make it bold.
 - **Italic:** Wrap your text in * to make it italic.
+- **Links:** Create links using \[title](link).
 - **Formatting Symbols:** Asterisks and hashes hide when you are not on the same line.
 - **File Download:** Download your markdown file as a string.
 - **File Upload:** Upload a markdown text file.
@@ -18,9 +19,11 @@ Check out the live demo [here](https://el-ahmed.github.io/WYSIWYG-Markdown-Edito
    - Wrap your text in * for italic: *italic*
    - Wrap your text in ** for bold: **bold**
    - Wrap your text in *** for bold italic: ***bold italic***
-3. Hiding Formatting Symbols:
+3. Links:
+   - Create a link by wrapping the link text in square brackets [ ] and the URL in parentheses ( )
+4. Hiding Formatting Symbols:
    - The formatting symbols (hashes and asterisks) will only appear when your cursor is on the same line as the text. They will hide when you move to a different line.
-4. File Operations:
+5. File Operations:
    - Download: Click the download button to save your markdown file as a string.
    - Upload: Click the upload button to load a markdown text file.
 ## Support
