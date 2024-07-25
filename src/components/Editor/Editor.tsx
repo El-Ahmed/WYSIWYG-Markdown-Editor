@@ -15,6 +15,7 @@ import {
   handleBreakNode,
   handleHeadingNode,
   handleHiddenText,
+  handleLinks,
 } from "./Editor.helper";
 
 const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
@@ -44,6 +45,9 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
       editedChildNodes.forEach((childNode) => {
         handleBold(childNode);
       });
+      editedChildNodes.forEach((childNode) => {
+        handleLinks(childNode);
+      });
 
       const text = Array.from(container.children)
         .map((node) => node.textContent)
@@ -71,6 +75,18 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
       handleHiddenText(childNode, true);
     });
   };
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+      const target = e.target as HTMLElement;
+      if (target.className === "link") {
+        e.preventDefault();
+        const href = target.dataset.link;
+        window.open(href, "_blank");
+      }
+    },
+    []
+  );
 
   const resetEditor = () => {
     if (!editorRef.current) return;
@@ -110,6 +126,7 @@ const Editor: FC<EditorProps> = ({ initialContent, onContentChange }) => {
         onInput={() => handleInput()}
         onSelect={handleSelect}
         onBlur={handleBlur}
+        onClick={handleClick}
       ></div>
     </>
   );

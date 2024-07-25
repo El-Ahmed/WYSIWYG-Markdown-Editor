@@ -27,7 +27,7 @@ const clearElement = (element: Element) => {
     startOffset &&
     element.firstChild
   ) {
-    range?.setStart(element.firstChild, startOffset);
+    range.setStart(element.firstChild, startOffset);
     selection.removeAllRanges();
     selection.addRange(range);
   }
@@ -225,6 +225,94 @@ export const handleBold = (node: ChildNode) => {
         range.setStart(childElement.firstChild, newOffset);
         selection.removeAllRanges();
         selection.addRange(range); //
+      }
+      return false;
+    }
+    return true;
+  });
+};
+
+export const handleLinks = (node: ChildNode) => {
+  const element = node as Element;
+  if (element.className.length) return;
+  if (!element.textContent?.length) return;
+  if (
+    !["[", "]", "(", ")"].every((char) => element.textContent?.includes(char))
+  )
+    return;
+
+  const selection = window.getSelection();
+
+  const range =
+    selection && selection?.rangeCount > 0
+      ? selection?.getRangeAt?.(0)
+      : undefined;
+  const startOffset = range?.startOffset;
+  const selected = selection?.containsNode(element, true);
+
+  const textContent = element.textContent.toString();
+
+  const regex = /(\[.*?\]\(.*?\))/g;
+  const parts = textContent.split(regex);
+  const splitText = parts.filter((part) => part !== "");
+  const textList = splitText.map((text) => {
+    const linkRegex = /\[(.*?)\]\((.*?)\)/;
+    const match = text.match(linkRegex);
+    if (!text.match(regex) || !match) {
+      return {
+        link: null,
+        text,
+      };
+    }
+    return {
+      text: match[1],
+      link: match[2],
+    };
+  });
+
+  element.textContent = "";
+  textList.forEach((textObject) => {
+    if (!textObject.link) {
+      const span = document.createElement("span");
+      span.textContent = textObject.text;
+      element.appendChild(span);
+      return;
+    }
+
+    const bracketSpan = document.createElement("span");
+    bracketSpan.textContent = "[";
+    bracketSpan.className = "to-hide";
+    element.appendChild(bracketSpan);
+
+    const textElement = document.createElement("span");
+    textElement.textContent = textObject.text;
+    textElement.dataset.link = textObject.link;
+    textElement.title = "Ctrl+click to open";
+    textElement.className = "link";
+    element.appendChild(textElement);
+
+    const closingBracketSpan = document.createElement("span");
+    closingBracketSpan.textContent = "]";
+    closingBracketSpan.className = "to-hide";
+    element.appendChild(closingBracketSpan);
+
+    const linkSpan = document.createElement("span");
+    linkSpan.textContent = `(${textObject.link})`;
+    linkSpan.className = "to-hide";
+    element.appendChild(linkSpan);
+  });
+  let charCount = 0;
+  if (!startOffset || !range || !selection || !selected) return;
+  Array.from(element.children).every((childElement) => {
+    if (!childElement.textContent) return true;
+    charCount += childElement.textContent.length;
+    if (charCount >= startOffset) {
+      const newOffset =
+        startOffset - (charCount - childElement.textContent?.length);
+      if (childElement.firstChild) {
+        range.setStart(childElement.firstChild, newOffset);
+        selection.removeAllRanges();
+        selection.addRange(range);
       }
       return false;
     }

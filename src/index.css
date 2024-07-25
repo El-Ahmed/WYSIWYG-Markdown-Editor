@@ -148,3 +148,9 @@ button:focus-visible {
   justify-content: flex-end;
   margin-inline: 0.5rem;
 }
+
+.link {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #535bf2;
+}
